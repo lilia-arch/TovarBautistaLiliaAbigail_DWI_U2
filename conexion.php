@@ -1,7 +1,7 @@
 <?php
 class Conexion {
     private $host = "localhost";
-    private $db_name = "gamestore_db";
+    private $db_name = "sistema_login";
     private $username = "root"; // Usuario por defecto en XAMPP
     private $password = "";     // Contraseña por defecto (vacía)
     public $conn;

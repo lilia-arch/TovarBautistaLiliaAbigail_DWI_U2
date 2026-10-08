@@ -1,41 +1,110 @@
 <?php
-// login.php
-session_start(); // REQUISITO: Manejo de multisesiones
+
+session_start();
+
 header("Content-Type: application/json; charset=UTF-8");
-require_once 'Conexion.php';
 
-$database = new Conexion();
-$db = $database->getConexion();
-$data = json_decode(file_get_contents("php://input"));
+require_once "Conexion.php";
 
-if (!empty($data->username) && !empty($data->password)) {
-    $query = "SELECT id, username, password, rol FROM usuarios WHERE username = :username LIMIT 1";
-    $stmt = $db->prepare($query);
-    $stmt->bindParam(":username", $data->username);
-    $stmt->execute();
+try {
 
-    if ($stmt->rowCount() > 0) {
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        if (password_verify($data->password, $row['password'])) {
-            // Guardamos los datos en la sesión del servidor
-            $_SESSION['user_id'] = $row['id'];
-            $_SESSION['username'] = $row['username'];
-            $_SESSION['rol'] = $row['rol']; // REQUISITO: Autenticación por tipo de usuario
+    // Recibir datos
+    $data = json_decode(
+        file_get_contents("php://input"),
+        true
+    );
 
-            echo json_encode([
-                "success" => true, 
-                "username" => $row['username'], 
-                "rol" => $row['rol'],
-                "mensaje" => "Login exitoso."
-            ]);
-        } else {
-            echo json_encode(["success" => false, "mensaje" => "Contraseña incorrecta."]);
-        }
-    } else {
-        echo json_encode(["success" => false, "mensaje" => "El usuario no existe."]);
+    $username = trim($data["username"] ?? "");
+    $password = trim($data["password"] ?? "");
+
+    // Validar campos
+    if ($username === "" || $password === "") {
+
+        echo json_encode([
+            "success" => false,
+            "mensaje" => "Debes llenar todos los campos."
+        ], JSON_UNESCAPED_UNICODE);
+
+        exit;
     }
-} else {
-    echo json_encode(["success" => false, "mensaje" => "Faltan datos."]);
+
+    // Conexión
+    $database = new Conexion();
+    $db = $database->getConexion();
+
+    // Buscar usuario
+    $sql = "
+        SELECT
+            id,
+            username,
+            password,
+            rol
+        FROM usuarios
+        WHERE username = ?
+    ";
+
+    $stmt = $db->prepare($sql);
+
+    $stmt->execute([
+        $username
+    ]);
+
+    $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // Usuario no encontrado
+    if (!$usuario) {
+
+        echo json_encode([
+            "success" => false,
+            "mensaje" => "Usuario o contraseña incorrectos."
+        ], JSON_UNESCAPED_UNICODE);
+
+        exit;
+    }
+
+    // Verificar contraseña
+    if (!password_verify($password, $usuario["password"])) {
+
+        echo json_encode([
+            "success" => false,
+            "mensaje" => "Usuario o contraseña incorrectos."
+        ], JSON_UNESCAPED_UNICODE);
+
+        exit;
+    }
+
+    // ==========================================
+    // CREAR SESIÓN
+    // ==========================================
+
+    $_SESSION["usuario_id"] = $usuario["id"];
+
+    $_SESSION["username"] = $usuario["username"];
+
+    $_SESSION["rol"] = $usuario["rol"];
+
+
+    // ==========================================
+    // RESPUESTA
+    // ==========================================
+
+    echo json_encode([
+        "success" => true,
+        "mensaje" => "Inicio de sesión correcto.",
+        "usuario_id" => $usuario["id"],
+        "username" => $usuario["username"],
+        "rol" => $usuario["rol"]
+    ], JSON_UNESCAPED_UNICODE);
+
+
+} catch (PDOException $e) {
+
+    http_response_code(500);
+
+    echo json_encode([
+        "success" => false,
+        "mensaje" => "Error de conexión: " . $e->getMessage()
+    ], JSON_UNESCAPED_UNICODE);
 }
+
 ?>
