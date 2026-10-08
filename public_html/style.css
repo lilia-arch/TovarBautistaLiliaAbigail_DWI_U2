@@ -1,0 +1,174 @@
+
+/* ======================================================
+   TENISSTORE
+   ESTILOS PRINCIPALES
+   ====================================================== */
+
+
+/* ======================================================
+   BARRA DE NAVEGACIÓN
+   ====================================================== */
+
+.custom-navbar {
+
+    background-color: #fff159;
+
+}
+
+
+/* Logo */
+
+.navbar-brand {
+
+    color: #000 !important;
+
+}
+
+
+/* ======================================================
+   BOTONES
+   ====================================================== */
+
+.custom-btn {
+
+    transition:
+        transform 0.2s ease,
+        background-color 0.3s ease,
+        color 0.3s ease;
+
+}
+
+
+.custom-btn:hover {
+
+    transform: translateY(-2px);
+
+    background-color: #000;
+
+    color: #fff;
+
+}
+
+
+/* ======================================================
+   CARRUSEL
+   ====================================================== */
+
+.banner-img {
+
+    height: 400px;
+
+    object-fit: cover;
+
+}
+
+
+/* En celulares */
+
+@media (max-width: 768px) {
+
+    .banner-img {
+
+        height: 250px;
+
+    }
+
+}
+
+
+/* ======================================================
+   TARJETAS DE PRODUCTOS
+   ====================================================== */
+
+.product-card {
+
+    background: #fff;
+
+    border: none;
+
+    border-radius: 8px;
+
+    overflow: hidden;
+
+    box-shadow:
+        0 1px 3px rgba(0, 0, 0, 0.1);
+
+    transition:
+        box-shadow 0.3s ease,
+        transform 0.3s ease;
+
+    cursor: pointer;
+
+}
+
+
+/* Efecto cuando pasas el mouse */
+
+.product-card-hover {
+
+    box-shadow:
+        0 10px 20px rgba(0, 0, 0, 0.15);
+
+    transform: translateY(-5px);
+
+}
+
+
+/* ======================================================
+   IMÁGENES DE PRODUCTOS
+   ====================================================== */
+
+.product-card img {
+
+    width: 100%;
+
+    height: 250px;
+
+    object-fit: cover;
+
+    border-radius: 6px;
+
+}
+
+
+/* ======================================================
+   NOMBRE DEL PRODUCTO
+   ====================================================== */
+
+.product-card h5 {
+
+    color: #222;
+
+    margin-top: 5px;
+
+}
+
+
+/* ======================================================
+   DESCRIPCIÓN
+   ====================================================== */
+
+.product-card p {
+
+    line-height: 1.5;
+
+}
+
+
+/* ======================================================
+   PRECIO
+   ====================================================== */
+
+.product-card h4 {
+
+    margin-top: 10px;
+
+    margin-bottom: 10px;
+
+}
+
+
+/* ======================================================
+   BOTÓN COMPRAR
+   ============================
+```
