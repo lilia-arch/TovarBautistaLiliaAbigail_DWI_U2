@@ -4,20 +4,26 @@ session_start();
 
 header("Content-Type: application/json; charset=UTF-8");
 
-require_once "Conexion.php";
+// Compatibilidad de nombre de archivo para servidores Linux (Railway)
+if (file_exists("Conexion.php")) {
+    require_once "Conexion.php";
+} else {
+    require_once "conexion.php";
+}
 
 try {
 
-    // Recibir datos
+    // Recibir datos en formato JSON
     $data = json_decode(
         file_get_contents("php://input"),
         true
     );
 
-    $username = trim($data["username"] ?? "");
-    $password = trim($data["password"] ?? "");
+    // Soporte para variables enviadas como 'username' / 'usuario' y 'password' / 'clave'
+    $username = trim($data["username"] ?? $data["usuario"] ?? "");
+    $password = trim($data["password"] ?? $data["clave"] ?? "");
 
-    // Validar campos
+    // Validar campos vacíos
     if ($username === "" || $password === "") {
 
         echo json_encode([
@@ -28,11 +34,11 @@ try {
         exit;
     }
 
-    // Conexión
+    // Conexión a la base de datos
     $database = new Conexion();
     $db = $database->getConexion();
 
-    // Buscar usuario
+    // Buscar usuario en la tabla 'usuarios'
     $sql = "
         SELECT
             id,
@@ -44,11 +50,7 @@ try {
     ";
 
     $stmt = $db->prepare($sql);
-
-    $stmt->execute([
-        $username
-    ]);
-
+    $stmt->execute([$username]);
     $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
     // Usuario no encontrado
@@ -62,8 +64,10 @@ try {
         exit;
     }
 
-    // Verificar contraseña
-    if (!password_verify($password, $usuario["password"])) {
+    // Verificar contraseña (Soporta hash con password_verify y texto plano como respaldo)
+    $esValida = password_verify($password, $usuario["password"]) || ($password === $usuario["password"]);
+
+    if (!$esValida) {
 
         echo json_encode([
             "success" => false,
@@ -78,24 +82,20 @@ try {
     // ==========================================
 
     $_SESSION["usuario_id"] = $usuario["id"];
-
-    $_SESSION["username"] = $usuario["username"];
-
-    $_SESSION["rol"] = $usuario["rol"];
-
+    $_SESSION["username"]   = $usuario["username"];
+    $_SESSION["rol"]        = $usuario["rol"];
 
     // ==========================================
-    // RESPUESTA
+    // RESPUESTA EXITOSA
     // ==========================================
 
     echo json_encode([
-        "success" => true,
-        "mensaje" => "Inicio de sesión correcto.",
+        "success"    => true,
+        "mensaje"    => "Inicio de sesión correcto.",
         "usuario_id" => $usuario["id"],
-        "username" => $usuario["username"],
-        "rol" => $usuario["rol"]
+        "username"   => $usuario["username"],
+        "rol"        => $usuario["rol"]
     ], JSON_UNESCAPED_UNICODE);
-
 
 } catch (PDOException $e) {
 
@@ -103,7 +103,7 @@ try {
 
     echo json_encode([
         "success" => false,
-        "mensaje" => "Error de conexión: " . $e->getMessage()
+        "mensaje" => "Error de conexión en el servidor: " . $e->getMessage()
     ], JSON_UNESCAPED_UNICODE);
 }
 
