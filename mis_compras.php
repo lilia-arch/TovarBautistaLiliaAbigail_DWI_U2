@@ -2,13 +2,19 @@
 
 session_start();
 
+// Encabezado para garantizar respuesta JSON limpia
 header("Content-Type: application/json; charset=UTF-8");
 
-require_once "Conexion.php";
+// Compatibilidad de archivo para Linux/Railway (Conexion.php vs conexion.php)
+if (file_exists("Conexion.php")) {
+    require_once "Conexion.php";
+} else {
+    require_once "conexion.php";
+}
 
 try {
 
-    // Verificar sesión
+    // Verificar sesión activa del usuario
     if (!isset($_SESSION["usuario_id"])) {
 
         http_response_code(401);
@@ -26,6 +32,7 @@ try {
     $database = new Conexion();
     $db = $database->getConexion();
 
+    // Consultar el historial de compras del usuario
     $sql = "
         SELECT
             id,
@@ -40,13 +47,9 @@ try {
     ";
 
     $stmt = $db->prepare($sql);
+    $stmt->execute([$usuario_id]);
 
-    $stmt->execute([
-        $usuario_id
-    ]);
-
-    $compras =
-        $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $compras = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     echo json_encode([
         "success" => true,
@@ -59,9 +62,7 @@ try {
 
     echo json_encode([
         "success" => false,
-        "mensaje" =>
-            "Error al consultar compras: " .
-            $e->getMessage()
+        "mensaje" => "Error al consultar compras: " . $e->getMessage()
     ], JSON_UNESCAPED_UNICODE);
 }
 ?>
